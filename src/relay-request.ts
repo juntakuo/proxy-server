@@ -1,7 +1,7 @@
 import http from 'http';
 import https from 'https';
 import { Client } from './client';
-import { config } from '../config';
+import { config } from './config';
 
 interface RelayRequestSchema {
   p?: string,

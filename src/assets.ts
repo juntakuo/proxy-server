@@ -1,34 +1,39 @@
 import { readFile } from 'fs';
 import http2 from 'http2';
-import { config } from '../config';
+import { config } from './config';
 
-class JSAsset {
-  protected cache?: string;
+class Assets {
+  protected readonly cache: {js?: string; readme?: string} = {};
 
   constructor() {
     this.load();
   }
 
   get js(): string {
-    return this.cache || '';
+    return this.cache.js || '';
+  }
+
+  get readme(): string {
+    return this.cache.readme || '';
   }
 
   load(): void {
     const protocol = config.js.split('://')[0];
     if (protocol === 'http' || protocol === 'https') {
-      this.loadHTTP();
+      this.loadJSRemote();
     } else {
-      this.loadFile();
+      this.loadJSLocal();
     }
+    this.loadReadme();
   }
 
-  private loadFile(): void {
-    console.log('[asset] loading file:', config.js);
-    readFile(config.js, 'utf8', (err, data) => this.store(err ? '' : data));
+  private loadJSLocal(): void {
+    console.log('[asset] loading JS file:', config.js);
+    readFile(config.js, 'utf8', (err, data) => this.store(err ? '' : data, 'js'));
   }
 
-  private loadHTTP(): void {
-    console.log('[asset] retrieving:', config.js);
+  private loadJSRemote(): void {
+    console.log('[asset] retrieving JS file:', config.js);
     const url = new URL(config.js);
     console.log(`url: ${url.protocol}//${url.host}`);
     const client = http2.connect(`${url.protocol}//${url.host}`);
@@ -44,7 +49,7 @@ class JSAsset {
         data += chunk;
       });
       req.on('end', () => {
-        this.store(data);
+        this.store(data, 'js');
         client.close();
       });
     });
@@ -52,24 +57,29 @@ class JSAsset {
     req.end();
   }
 
+  private loadReadme(): void {
+    console.log('[asset] loading readme file:', config.readme);
+    readFile(config.readme, 'utf8', (err, data) => this.store(err ? '' : data, 'readme'));
+  }
+
   private logFail(msg: string): void {
     console.error('[asset] ERROR:', msg);
     if (!this.cache) {
       process.exit(1);
     }
-}
+  }
 
-  private store(data: string): void {
+  private store(data: string, target: keyof Assets['cache']): void {
     if (!data) {
-      console.error(`[asset] ERROR: loading ${config.js}`);
+      console.error(`[asset] ERROR: loading ${target}`);
       if (!this.cache) {
         process.exit(1);
       }
     } else {
-      this.cache = data;
-      console.log(`[asset] cached ${Buffer.byteLength(data, 'utf8')} bytes`);
+      this.cache[target] = data;
+      console.log(`[asset] ${target} cached ${Buffer.byteLength(data, 'utf8')} bytes`);
     }
   }
 }
 
-export const jsAsset = new JSAsset();
+export const assets = new Assets();

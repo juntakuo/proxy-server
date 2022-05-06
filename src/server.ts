@@ -1,16 +1,16 @@
 import http from 'http';
 
-import { JSAssetRequest } from './js-asset-request';
-import { config } from '../config';
+import { config } from './config';
 import { CORSRequest } from './cors-request';
+import { JSAssetRequest } from './js-asset-request';
 import { NotFound } from './not-found';
+import { ReadmeRequest } from './readme-request';
 import { RelayRequest } from './relay-request';
 
 export class Server {
   protected server: http.Server | undefined;
 
   constructor() {
-    // TODO add support for HTTPS
     this.server = http.createServer((req, res) => this.incoming(req, res));
     this.server.listen(config.serverPort, config.serverHost, () => {
       console.log(`[server] listening on ${config.serverHost}:${config.serverPort}`);
@@ -32,16 +32,20 @@ export class Server {
 
   private route(req: http.IncomingMessage, res: http.ServerResponse, body: string = ''): void {
     const urlParts = String(req.url).split('/');
-    const rootPath = (urlParts[1] || '').split('?')[0];
-    if (req.method === 'GET' && (rootPath === 'scevent.min.js' || rootPath === 's.js') && urlParts.length === 2) {
+    if (req.method === 'GET' && req.url === '/') {
+      new ReadmeRequest(req, res);
+      return;
+    }
+    const part1 = (urlParts[1] || '').split('?')[0];
+    if (req.method === 'GET' && (part1 === 'scevent.min.js' || part1 === 's.js') && urlParts.length === 2) {
       new JSAssetRequest(req, res);
       return;
     }
-    if (req.method === 'OPTIONS' && rootPath === 'r' && urlParts.length === 2) {
+    if (req.method === 'OPTIONS' && part1 === 'r' && urlParts.length === 2) {
       new CORSRequest(req, res);
       return;
     }
-    if (req.method === 'POST' && rootPath === 'r' && urlParts.length === 2) {
+    if (req.method === 'POST' && part1 === 'r' && urlParts.length === 2) {
       new RelayRequest(req, res, body);
       return;
     }
@@ -49,3 +53,4 @@ export class Server {
   }
 }
 
+new Server();
