@@ -20,8 +20,7 @@ export class JSAssetRequest extends Client {
       this.respond(500, { 'Content-Type': 'text/html' }, '500 - Server error (missing hostname)')
       return;
     }
-    console.log('hostname:', host);
-    const js = assets.js.replace(replaceRx, host);
+    const js = 'https://' + assets.js.replace(replaceRx, host);
     this.respond(200, { 'Content-Length': Buffer.byteLength(js, 'utf8'), 'Content-Type': 'text/javascript' }, js);
   }
 }
