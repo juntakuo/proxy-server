@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "compile": "npm i && tsc",
+    "compile": "npm i && tsc && npm run compile-readme",
+    "compile-readme": "markdown README.md -t \"SCE Gateway\" -f gfm > static/readme.html",
     "start": "node bin/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -13,6 +14,7 @@
   "license": "ISC",
   "dependencies": {
     "@types/node": "^17.0.23",
+    "markdown-to-html": "^0.0.13",
     "ts-node": "^10.7.0",
     "typescript": "^4.6.3"
   }

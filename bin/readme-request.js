@@ -13,7 +13,10 @@ class ReadmeRequest extends client_1.Client {
             setTimeout(() => this.send(), 100);
             return;
         }
-        this.respond(200, { 'Content-Length': Buffer.byteLength(assets_1.assets.readme, 'utf8'), 'Content-Type': 'text/html' }, assets_1.assets.readme);
+        const readme = this.hostUpdatedSource(assets_1.assets.readme);
+        if (readme) {
+            this.respond(200, { 'Content-Length': Buffer.byteLength(readme, 'utf8'), 'Content-Type': 'text/html' }, readme);
+        }
     }
 }
 exports.ReadmeRequest = ReadmeRequest;

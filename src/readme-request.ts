@@ -13,6 +13,9 @@ export class ReadmeRequest extends Client {
       setTimeout(() => this.send(), 100);
       return;
     }
-    this.respond(200, { 'Content-Length': Buffer.byteLength(assets.readme, 'utf8'), 'Content-Type': 'text/html' }, assets.readme);
+    const readme = this.hostUpdatedSource(assets.readme);
+    if (readme) {
+      this.respond(200, { 'Content-Length': Buffer.byteLength(readme, 'utf8'), 'Content-Type': 'text/html' }, readme);
+    }
   }
 }
